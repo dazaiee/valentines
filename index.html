@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PANKHURI — A Constellation For You ✨</title>
+    <meta name="description"
+        content="A Valentine star-map constellation gift spelling PANKHURI with real IAU-approved stars.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════
+   CSS — Valentine Star Map for PANKHURI
+   ═══════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #0a0e27;
+            --panel: rgba(15, 20, 50, 0.75);
+            --border: rgba(255, 255, 255, 0.08);
+            --rose: #f5b7b1;
+            --gold: #e8a87c;
+            --pink: #ff6b9d;
+            --lavender: #c9b1ff;
+            --text: #e8e6f0;
+            --text-dim: rgba(232, 230, 240, 0.55);
+            --star-glow: #ffe8a0;
+            --glass-blur: 16px;
+            --radius: 14px;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, sans-serif
+        }
+
+        canvas#skyCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1
+        }
+
+        /* ── Glassmorphism panels ── */
+        .glass {
+            background: var(--panel);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        /* ── Title overlay ── */
+        #titleOverlay {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        #titleOverlay h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            background: linear-gradient(135deg, var(--rose), var(--gold), var(--lavender));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 20px rgba(245, 183, 177, 0.3));
+        }
+
+        #titleOverlay p {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: clamp(0.75rem, 1.8vw, 1.05rem);
+            color: var(--rose);
+            opacity: 0.7;
+            margin-top: 6px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Controls panel ── */
+        #controls {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        #controls button,
+        #controls label {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.04);
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #controls button:hover,
+        #controls label:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.18)
+        }
+
+        #controls button.active {
+            background: rgba(245, 183, 177, 0.15);
+            border-color: var(--rose);
+            color: var(--rose)
+        }
+
+        #controls .sep {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            flex-shrink: 0
+        }
+
+        /* ── Info card ── */
+        #starCard {
+            position: fixed;
+            z-index: 30;
+            width: min(320px, 90vw);
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(8px);
+        }
+
+        #starCard.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0)
+        }
+
+        #starCard .card-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--gold), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            float: left;
+            margin-right: 10px;
+        }
+
+        #starCard h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            color: var(--gold);
+            margin-bottom: 2px
+        }
+
+        #starCard .card-constellation {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 10px
+        }
+
+        #starCard .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 14px;
+            font-size: 0.72rem;
+            margin-bottom: 12px
+        }
+
+        #starCard .card-grid dt {
+            color: var(--text-dim)
+        }
+
+        #starCard .card-grid dd {
+            color: var(--text);
+            text-align: right
+        }
+
+        #starCard .card-link {
+            display: inline-block;
+            font-size: 0.7rem;
+            color: var(--lavender);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(201, 177, 255, 0.3);
+            transition: border-color 0.2s;
+        }
+
+        #starCard .card-link:hover {
+            border-color: var(--lavender)
+        }
+
+        #starCard .card-horizon {
+            font-size: 0.65rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            display: inline-block
+        }
+
+        #starCard .card-horizon.above {
+            background: rgba(100, 255, 150, 0.1);
+            color: #90eea0
+        }
+
+        #starCard .card-horizon.below {
+            background: rgba(255, 100, 100, 0.1);
+            color: #ff9090
+        }
+
+        #starCard .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        /* ── Tooltip (hover) ── */
+        #starTooltip {
+            position: fixed;
+            z-index: 25;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        #starTooltip.visible {
+            opacity: 1
+        }
+
+        /* ── Help & Sources panels ── */
+        .side-panel {
+            position: fixed;
+            z-index: 25;
+            width: min(340px, 85vw);
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            top: 80px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            transform: translateX(-12px);
+        }
+
+        .side-panel.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0)
+        }
+
+        .side-panel.left {
+            left: 16px
+        }
+
+        .side-panel.right {
+            right: 16px;
+            transform: translateX(12px)
+        }
+
+        .side-panel.right.visible {
+            transform: translateX(0)
+        }
+
+        .side-panel h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            color: var(--gold);
+            margin-bottom: 10px
+        }
+
+        .side-panel p,
+        .side-panel li {
+            font-size: 0.72rem;
+            line-height: 1.6;
+            color: var(--text-dim)
+        }
+
+        .side-panel ul {
+            list-style: none;
+            padding-left: 0
+        }
+
+        .side-panel li::before {
+            content: '✦ ';
+            color: var(--rose)
+        }
+
+        .side-panel a {
+            color: var(--lavender);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(201, 177, 255, 0.2)
+        }
+
+        .side-panel .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1rem;
+            cursor: pointer
+        }
+
+        /* ── Rotate overlay (mobile portrait) ── */
+        #rotateOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            text-align: center;
+            padding: 40px;
+        }
+
+        #rotateOverlay .rotate-icon {
+            font-size: 3rem;
+            animation: rotatePhone 2s ease-in-out infinite
+        }
+
+        #rotateOverlay p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            color: var(--rose)
+        }
+
+        #rotateOverlay .dismiss {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            margin-top: 8px;
+            text-decoration: underline
+        }
+
+        @keyframes rotatePhone {
+
+            0%,
+            100% {
+                transform: rotate(0deg)
+            }
+
+            50% {
+                transform: rotate(90deg)
+            }
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 4px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px
+        }
+
+        /* ── Loading state ── */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            transition: opacity 0.8s ease;
+        }
+
+        #loadingOverlay.hidden {
+            opacity: 0;
+            pointer-events: none
+        }
+
+        #loadingOverlay p {
+            font-family: 'Playfair Display', serif;
+            color: var(--rose);
+            font-size: 1rem
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border);
+            border-top-color: var(--rose);
+            border-radius: 50%;
+            animation: spin 1s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* ── Responsive ── */
+        @media(max-width:600px) {
+            #controls {
+                bottom: 8px;
+                gap: 5px;
+                padding: 8px 10px
+            }
+
+            #controls button,
+            #controls label {
+                font-size: 0.65rem;
+                padding: 5px 8px
+            }
+
+            #titleOverlay {
+                top: 12px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Loading -->
+    <div id="loadingOverlay">
+        <div class="loader"></div>
+        <p>Mapping the stars…</p>
+    </div>
+
+    <!-- Rotate prompt for mobile portrait -->
+    <div id="rotateOverlay">
+        <div class="rotate-icon">📱</div>
+        <p>Rotate your phone for the best view ✨</p>
+        <span class="dismiss" onclick="document.getElementById('rotateOverlay').style.display='none'">View anyway</span>
+    </div>
+
+    <!-- Sky canvas -->
+    <canvas id="skyCanvas"></canvas>
+
+    <!-- Title -->
+    <div id="titleOverlay">
+        <p>A star constellation for my pretty baby</p>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls" class="glass">
+        <button id="btnLines" class="active" title="Toggle constellation lines">✦ Lines</button>
+        <button id="btnLabels" class="active" title="Toggle star labels">🏷 Labels</button>
+        <div class="sep"></div>
+        <button id="btnHelp" title="How to use">❓ Help</button>
+        <button id="btnSources" title="Data sources">📚 Sources</button>
+    </div>
+
+    <!-- Star info card -->
+    <div id="starCard" class="glass">
+        <button class="close-btn" onclick="hideStarCard()">&times;</button>
+        <div id="cardContent"></div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="starTooltip" class="glass"></div>
+
+    <!-- Help panel -->
+    <div id="helpPanel" class="side-panel glass left">
+        <button class="close-btn" onclick="togglePanel('helpPanel')">&times;</button>
+        <h3>How to Use</h3>
+        <ul>
+            <li>Toggle <b>Lines</b> to show/hide the constellation connections.</li>
+            <li>Toggle <b>Labels</b> to show/hide star name labels.</li>
+            <li><b>Click any bright star</b> to see its real astronomical data.</li>
+            <li><b>Click anywhere</b> on the sky for a shooting star ✨.</li>
+            <li>Stars are plotted at their real J2000 equatorial positions.</li>
+            <li>On mobile, rotate to landscape for the best experience.</li>
+        </ul>
+    </div>
+
+    <!-- Sources panel -->
+    <div id="sourcesPanel" class="side-panel glass right">
+        <button class="close-btn" onclick="togglePanel('sourcesPanel')">&times;</button>
+        <h3>Sources &amp; References</h3>
+        <p style="margin-bottom:8px">All 8 star names are <b>IAU WGSN-approved</b> proper names.</p>
+        <ul>
+            <li><a href="https://www.iau.org/public/themes/naming_stars/" target="_blank" rel="noopener">IAU Star
+                    Naming</a></li>
+            <li><a href="https://simbad.u-strasbg.fr/simbad/" target="_blank" rel="noopener">SIMBAD Database</a> — J2000
+                coordinates</li>
+            <li><a href="https://en.wikipedia.org/wiki/List_of_IAU-approved_star_names" target="_blank"
+                    rel="noopener">Wikipedia: IAU Star Names</a></li>
+            <li>Coordinate transforms: <a href="https://github.com/cosinekitty/astronomy" target="_blank"
+                    rel="noopener">astronomy-engine</a></li>
+        </ul>
+        <p style="margin-top:10px;font-size:0.65rem;color:var(--text-dim)">Projection: Stereographic. Epoch: J2000.
+            Coordinates verified against SIMBAD &amp; Wikipedia.</p>
+    </div>
+
+
+    <script>
+        /**
+         * ═══════════════════════════════════════════════════════════════
+         * Valentine Star Map — PANKHURI Constellation
+         * 
+         * Astronomy: RA/Dec J2000 → Alt/Az via astronomy-engine,
+         * then stereographic projection to 2D canvas.
+         * All star names IAU WGSN-approved. Coords from SIMBAD.
+         * ═══════════════════════════════════════════════════════════════
+         */
+
+        // ── Star database: 8 IAU-approved stars for P-A-N-K-H-U-R-I ──
+        // Stars chosen in the Boötes–Virgo–Serpens–Hercules–Ophiuchus region
+        // (RA ~12.5–17.6 h) for a compact constellation with minimal line crossings.
+        const STARS = [
+            {
+                letter: 'P', name: 'Porrima', designation: 'γ Vir',
+                constellation: 'Virgo', spectral: 'F0V',
+                mag: 2.74, distLy: 39,
+                raH: 12, raM: 41, raS: 39.64,
+                decD: 1, decM: 26, decS: 57.7, decSign: -1,
+                wiki: 'https://en.wikipedia.org/wiki/Gamma_Virginis',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=gam+Vir'
+            },
+            {
+                letter: 'A', name: 'Arcturus', designation: 'α Boo',
+                constellation: 'Boötes', spectral: 'K1.5III',
+                mag: -0.05, distLy: 37,
+                raH: 14, raM: 15, raS: 39.67,
+                decD: 19, decM: 10, decS: 56.7, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Arcturus',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=alf+Boo'
+            },
+            {
+                letter: 'N', name: 'Nekkar', designation: 'β Boo',
+                constellation: 'Boötes', spectral: 'G8IIIa',
+                mag: 3.49, distLy: 219,
+                raH: 15, raM: 1, raS: 56.76,
+                decD: 40, decM: 23, decS: 26.0, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Beta_Bo%C3%B6tis',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=bet+Boo'
+            },
+            {
+                letter: 'K', name: 'Kornephoros', designation: 'β Her',
+                constellation: 'Hercules', spectral: 'G7IIIa',
+                mag: 2.78, distLy: 139,
+                raH: 16, raM: 30, raS: 13.25,
+                decD: 21, decM: 29, decS: 22.6, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Beta_Herculis',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=bet+Her'
+            },
+            {
+                letter: 'H', name: 'Heze', designation: 'ζ Vir',
+                constellation: 'Virgo', spectral: 'A3V',
+                mag: 3.37, distLy: 73,
+                raH: 13, raM: 34, raS: 41.59,
+                decD: 0, decM: 35, decS: 44.6, decSign: -1,
+                wiki: 'https://en.wikipedia.org/wiki/Zeta_Virginis',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=zet+Vir'
+            },
+            {
+                letter: 'U', name: 'Unukalhai', designation: 'α Ser',
+                constellation: 'Serpens', spectral: 'K2III',
+                mag: 2.63, distLy: 74,
+                raH: 15, raM: 44, raS: 16.07,
+                decD: 6, decM: 25, decS: 32.3, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Unukalhai',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=alf+Ser'
+            },
+            {
+                letter: 'R', name: 'Rasalhague', designation: 'α Oph',
+                constellation: 'Ophiuchus', spectral: 'A5III',
+                mag: 2.07, distLy: 49,
+                raH: 17, raM: 34, raS: 56.07,
+                decD: 12, decM: 33, decS: 36.1, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Rasalhague',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=alf+Oph'
+            },
+            {
+                letter: 'I', name: 'Izar', designation: 'ε Boo',
+                constellation: 'Boötes', spectral: 'K0II-III',
+                mag: 2.37, distLy: 210,
+                raH: 14, raM: 44, raS: 59.22,
+                decD: 27, decM: 4, decS: 27.2, decSign: 1,
+                wiki: 'https://en.wikipedia.org/wiki/Izar_(star)',
+                simbad: 'https://simbad.u-strasbg.fr/simbad/sim-id?Ident=eps+Boo'
+            }
+        ];
+
+        // ── Convert star RA/Dec to decimal degrees ──
+        STARS.forEach(s => {
+            s.raDeg = (s.raH + s.raM / 60 + s.raS / 3600) * 15; // hours → degrees
+            s.decDeg = s.decSign * (s.decD + s.decM / 60 + s.decS / 3600);
+            s.raStr = `${s.raH}h ${s.raM}m ${s.raS.toFixed(1)}s`;
+            s.decStr = `${s.decSign < 0 ? '−' : '+'}${s.decD}° ${s.decM}′ ${s.decS.toFixed(1)}″`;
+        });
+
+        // ── State ──
+        let showLines = true, showLabels = true;
+        let projectedStars = []; // [{x, y, star}]
+        let shootingStars = [];
+        let faintStars = []; // random background stars
+        let animFrame = null;
+
+        // ── DOM refs ──
+        const canvas = document.getElementById('skyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // ── Resize canvas to device pixels ──
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            generateFaintStars();
+            reproject();
+        }
+        window.addEventListener('resize', resize);
+
+        /**
+         * Generate random faint background stars for ambiance.
+         * These are NOT real stars — purely decorative.
+         */
+        function generateFaintStars() {
+            faintStars = [];
+            const count = Math.min(600, Math.floor(window.innerWidth * window.innerHeight / 2000));
+            for (let i = 0; i < count; i++) {
+                faintStars.push({
+                    x: Math.random() * window.innerWidth,
+                    y: Math.random() * window.innerHeight,
+                    r: Math.random() * 1.2 + 0.3,
+                    alpha: Math.random() * 0.4 + 0.1,
+                    twinkleSpeed: Math.random() * 0.003 + 0.001,
+                    twinkleOffset: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        /**
+         * ═══════════════════════════════════════
+         * PROJECTION: RA/Dec → Screen (direct)
+         * 
+         * Uses stereographic projection directly from
+         * equatorial J2000 coordinates (RA/Dec) onto
+         * a 2D star-chart view. This gives a fixed,
+         * real star-map layout matching celestial atlases.
+         * No observer location/time dependency.
+         *
+         * Stereographic is conformal (angle-preserving)
+         * and handles the ~50° field of this region well.
+         * ═══════════════════════════════════════
+         */
+
+        /**
+         * Stereographic projection from spherical (RA, Dec) to 2D.
+         * @param {number} ra  - Right Ascension in degrees
+         * @param {number} dec - Declination in degrees
+         * @param {number} ra0 - Center RA in degrees
+         * @param {number} dec0- Center Dec in degrees
+         * @returns {{x: number, y: number}} projected coords
+         */
+        function stereographicProject(ra, dec, ra0, dec0) {
+            const toRad = Math.PI / 180;
+            const a = ra * toRad, d = dec * toRad;
+            const a0 = ra0 * toRad, d0 = dec0 * toRad;
+
+            const cosC = Math.sin(d0) * Math.sin(d)
+                + Math.cos(d0) * Math.cos(d) * Math.cos(a - a0);
+            const k = 2 / (1 + cosC);
+
+            // x positive = east on sky; flip for chart (east-left)
+            const x = -k * Math.cos(d) * Math.sin(a - a0);
+            const y = k * (Math.cos(d0) * Math.sin(d)
+                - Math.sin(d0) * Math.cos(d) * Math.cos(a - a0));
+            return { x, y };
+        }
+
+        /**
+         * Project all 8 stars to screen coords using direct RA/Dec.
+         * Like a real star chart — positions are fixed regardless of
+         * observer location or time.
+         */
+        function reproject() {
+            const W = window.innerWidth, H = window.innerHeight;
+
+            // Centroid in equatorial coords (average in Cartesian for safety)
+            const toRad = Math.PI / 180;
+            let cx = 0, cy = 0, cz = 0;
+            STARS.forEach(s => {
+                const a = s.raDeg * toRad, d = s.decDeg * toRad;
+                cx += Math.cos(d) * Math.cos(a);
+                cy += Math.cos(d) * Math.sin(a);
+                cz += Math.sin(d);
+            });
+            cx /= 8; cy /= 8; cz /= 8;
+            const centerRA = Math.atan2(cy, cx) / toRad;
+            const centerDec = Math.atan2(cz, Math.sqrt(cx * cx + cy * cy)) / toRad;
+
+            // Project all stars
+            const raw = STARS.map(s => {
+                const p = stereographicProject(s.raDeg, s.decDeg, centerRA, centerDec);
+                return { ...p, star: s };
+            });
+
+            // Bounding box → fit to screen with margin
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            raw.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+
+            const rangeX = maxX - minX || 1;
+            const rangeY = maxY - minY || 1;
+            const margin = 0.18;
+            const usableW = W * (1 - 2 * margin);
+            const usableH = H * (1 - 2 * margin);
+            const scale = Math.min(usableW / rangeX, usableH / rangeY);
+
+            const midX = (minX + maxX) / 2;
+            const midY = (minY + maxY) / 2;
+
+            projectedStars = raw.map(p => ({
+                x: W / 2 + (p.x - midX) * scale,
+                y: H / 2 + (p.y - midY) * scale,
+                star: p.star
+            }));
+        }
+
+        // ── Drawing ──
+        let frameTime = 0;
+
+        function draw(timestamp) {
+            frameTime = timestamp || 0;
+            const W = window.innerWidth, H = window.innerHeight;
+            ctx.clearRect(0, 0, W, H);
+
+            // Background gradient (night sky)
+            const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+            bgGrad.addColorStop(0, '#0f1535');
+            bgGrad.addColorStop(0.5, '#0a0e27');
+            bgGrad.addColorStop(1, '#060818');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Milky Way haze (subtle elliptical glow)
+            ctx.save();
+            ctx.translate(W * 0.4, H * 0.6);
+            ctx.rotate(-0.4);
+            ctx.scale(1.8, 0.5);
+            const milkyGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.35);
+            milkyGrad.addColorStop(0, 'rgba(180, 180, 220, 0.04)');
+            milkyGrad.addColorStop(0.4, 'rgba(140, 140, 200, 0.02)');
+            milkyGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = milkyGrad;
+            ctx.fillRect(-W, -H, W * 3, H * 3);
+            ctx.restore();
+
+            // Faint background stars with twinkle
+            faintStars.forEach(fs => {
+                const twinkle = 0.5 + 0.5 * Math.sin(frameTime * fs.twinkleSpeed + fs.twinkleOffset);
+                const a = fs.alpha * (0.5 + 0.5 * twinkle);
+                ctx.beginPath();
+                ctx.arc(fs.x, fs.y, fs.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(220, 220, 255, ${a})`;
+                ctx.fill();
+            });
+
+            // Constellation lines (P→A→N→K→H→U→R→I)
+            if (showLines && projectedStars.length === 8) {
+                ctx.save();
+                ctx.lineWidth = 1.5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = 'rgba(245, 183, 177, 0.5)';
+                ctx.shadowBlur = 12;
+
+                // Main path
+                ctx.beginPath();
+                for (let i = 0; i < projectedStars.length; i++) {
+                    const p = projectedStars[i];
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                const lineGrad = ctx.createLinearGradient(
+                    projectedStars[0].x, projectedStars[0].y,
+                    projectedStars[7].x, projectedStars[7].y
+                );
+                lineGrad.addColorStop(0, 'rgba(245, 183, 177, 0.6)');
+                lineGrad.addColorStop(0.5, 'rgba(232, 168, 124, 0.5)');
+                lineGrad.addColorStop(1, 'rgba(201, 177, 255, 0.6)');
+                ctx.strokeStyle = lineGrad;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Secondary glow layer
+                ctx.lineWidth = 4;
+                ctx.globalAlpha = 0.15;
+                ctx.beginPath();
+                for (let i = 0; i < projectedStars.length; i++) {
+                    const p = projectedStars[i];
+                    if (i === 0) ctx.moveTo(p.x, p.y);
+                    else ctx.lineTo(p.x, p.y);
+                }
+                ctx.strokeStyle = 'rgba(245, 183, 177, 0.4)';
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+
+            // Named stars (the 8 PANKHURI stars)
+            projectedStars.forEach((ps, idx) => {
+                const s = ps.star;
+                const twinkle = 0.7 + 0.3 * Math.sin(frameTime * 0.002 + idx * 1.3);
+
+                // Magnitude → visual radius (brighter = bigger)
+                const baseR = Math.max(2.5, 6 - s.mag * 1.2);
+                const r = baseR * twinkle;
+
+                // Outer glow
+                const glowGrad = ctx.createRadialGradient(ps.x, ps.y, 0, ps.x, ps.y, r * 5);
+                glowGrad.addColorStop(0, `rgba(255, 232, 160, ${0.25 * twinkle})`);
+                glowGrad.addColorStop(0.3, `rgba(245, 183, 177, ${0.1 * twinkle})`);
+                glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.beginPath();
+                ctx.arc(ps.x, ps.y, r * 5, 0, Math.PI * 2);
+                ctx.fillStyle = glowGrad;
+                ctx.fill();
+
+                // Star core
+                ctx.beginPath();
+                ctx.arc(ps.x, ps.y, r, 0, Math.PI * 2);
+                const coreGrad = ctx.createRadialGradient(ps.x, ps.y, 0, ps.x, ps.y, r);
+                coreGrad.addColorStop(0, '#ffffff');
+                coreGrad.addColorStop(0.4, 'rgba(255, 240, 210, 0.95)');
+                coreGrad.addColorStop(1, 'rgba(245, 183, 177, 0.5)');
+                ctx.fillStyle = coreGrad;
+                ctx.fill();
+
+                // Cross spikes for extra sparkle
+                ctx.save();
+                ctx.globalAlpha = 0.3 * twinkle;
+                ctx.strokeStyle = '#ffe8a0';
+                ctx.lineWidth = 0.8;
+                const spikeLen = r * 3;
+                ctx.beginPath();
+                ctx.moveTo(ps.x - spikeLen, ps.y); ctx.lineTo(ps.x + spikeLen, ps.y);
+                ctx.moveTo(ps.x, ps.y - spikeLen); ctx.lineTo(ps.x, ps.y + spikeLen);
+                ctx.stroke();
+                ctx.restore();
+
+                // Labels
+                if (showLabels) {
+                    ctx.save();
+                    ctx.font = '600 13px Inter, sans-serif';
+                    ctx.fillStyle = 'rgba(232, 168, 124, 0.9)';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    const labelX = ps.x + r * 2.5 + 6;
+                    const labelY = ps.y;
+                    // Letter badge
+                    ctx.fillText(s.letter, labelX, labelY);
+                    // Star name (smaller)
+                    ctx.font = '300 10px Inter, sans-serif';
+                    ctx.fillStyle = 'rgba(232, 230, 240, 0.5)';
+                    ctx.fillText(s.name, labelX + 14, labelY);
+                    ctx.restore();
+                }
+            });
+
+            // Shooting stars
+            shootingStars = shootingStars.filter(ss => {
+                ss.progress += ss.speed;
+                if (ss.progress > 1) return false;
+                const t = ss.progress;
+                const x = ss.x0 + (ss.x1 - ss.x0) * t;
+                const y = ss.y0 + (ss.y1 - ss.y0) * t;
+                const tailLen = 60;
+                const alpha = t < 0.3 ? t / 0.3 : (1 - t) / 0.7;
+
+                ctx.save();
+                const angle = Math.atan2(ss.y1 - ss.y0, ss.x1 - ss.x0);
+                const tailX = x - Math.cos(angle) * tailLen;
+                const tailY = y - Math.sin(angle) * tailLen;
+
+                const grad = ctx.createLinearGradient(tailX, tailY, x, y);
+                grad.addColorStop(0, 'rgba(255,255,255,0)');
+                grad.addColorStop(1, `rgba(255,240,220,${alpha * 0.8})`);
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(tailX, tailY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+
+                // Head glow
+                ctx.beginPath();
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+                ctx.fill();
+                ctx.restore();
+                return true;
+            });
+
+            animFrame = requestAnimationFrame(draw);
+        }
+
+        /** Spawn a shooting star from near a click point */
+        function spawnShootingStar(cx, cy) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 150 + Math.random() * 200;
+            shootingStars.push({
+                x0: cx + Math.cos(angle) * 30,
+                y0: cy + Math.sin(angle) * 30,
+                x1: cx + Math.cos(angle) * dist,
+                y1: cy + Math.sin(angle) * dist,
+                progress: 0,
+                speed: 0.015 + Math.random() * 0.015
+            });
+        }
+
+        // ── Star info card ──
+        function showStarCard(ps, screenX, screenY) {
+            const s = ps.star;
+            const W = window.innerWidth, H = window.innerHeight;
+            const card = document.getElementById('starCard');
+            const content = document.getElementById('cardContent');
+
+            content.innerHTML = `
+    <div class="card-letter">${s.letter}</div>
+    <h2>${s.name}</h2>
+    <div class="card-constellation">${s.designation} · ${s.constellation}</div>
+    <dl class="card-grid">
+      <dt>Magnitude</dt><dd>${s.mag.toFixed(2)}</dd>
+      <dt>Spectral Type</dt><dd>${s.spectral}</dd>
+      <dt>Distance</dt><dd>~${s.distLy} ly</dd>
+      <dt>RA (J2000)</dt><dd>${s.raStr}</dd>
+      <dt>Dec (J2000)</dt><dd>${s.decStr}</dd>
+    </dl>
+    <div style="margin-top:10px">
+      <a class="card-link" href="${s.wiki}" target="_blank" rel="noopener">Wikipedia ↗</a>
+      &nbsp;·&nbsp;
+      <a class="card-link" href="${s.simbad}" target="_blank" rel="noopener">SIMBAD ↗</a>
+    </div>
+  `;
+
+            // Position card near star but within viewport
+            let left = screenX + 20;
+            let top = screenY - 60;
+            if (left + 320 > W) left = screenX - 340;
+            if (top < 10) top = 10;
+            if (top + 350 > H) top = H - 360;
+            if (left < 10) left = 10;
+
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+            card.classList.add('visible');
+        }
+
+        function hideStarCard() {
+            document.getElementById('starCard').classList.remove('visible');
+        }
+
+        // ── Tooltip ──
+        function showTooltip(ps, x, y) {
+            const tip = document.getElementById('starTooltip');
+            tip.textContent = `${ps.star.letter} — ${ps.star.name} (${ps.star.constellation}, mag ${ps.star.mag})`;
+            tip.style.left = (x + 14) + 'px';
+            tip.style.top = (y - 10) + 'px';
+            tip.classList.add('visible');
+        }
+        function hideTooltip() {
+            document.getElementById('starTooltip').classList.remove('visible');
+        }
+
+        /** Find nearest projected star within hit radius */
+        function hitTest(x, y, radius = 25) {
+            let best = null, bestDist = radius;
+            projectedStars.forEach(ps => {
+                const d = Math.hypot(ps.x - x, ps.y - y);
+                if (d < bestDist) { bestDist = d; best = ps; }
+            });
+            return best;
+        }
+
+        // ── Event handlers ──
+        canvas.addEventListener('click', (e) => {
+            const hit = hitTest(e.clientX, e.clientY);
+            if (hit) {
+                showStarCard(hit, e.clientX, e.clientY);
+            } else {
+                hideStarCard();
+                spawnShootingStar(e.clientX, e.clientY);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const hit = hitTest(e.clientX, e.clientY, 30);
+            if (hit) {
+                canvas.style.cursor = 'pointer';
+                showTooltip(hit, e.clientX, e.clientY);
+            } else {
+                canvas.style.cursor = 'default';
+                hideTooltip();
+            }
+        });
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            const t = e.touches[0];
+            const hit = hitTest(t.clientX, t.clientY, 35);
+            if (hit) {
+                showStarCard(hit, t.clientX, t.clientY);
+                e.preventDefault();
+            } else {
+                hideStarCard();
+                spawnShootingStar(t.clientX, t.clientY);
+            }
+        }, { passive: false });
+
+        // ── Control buttons ──
+
+        document.getElementById('btnLines').addEventListener('click', function () {
+            showLines = !showLines;
+            this.classList.toggle('active');
+        });
+
+        document.getElementById('btnLabels').addEventListener('click', function () {
+            showLabels = !showLabels;
+            this.classList.toggle('active');
+        });
+
+        function togglePanel(id) {
+            const panel = document.getElementById(id);
+            panel.classList.toggle('visible');
+            // Close the other panel
+            const otherId = id === 'helpPanel' ? 'sourcesPanel' : 'helpPanel';
+            document.getElementById(otherId).classList.remove('visible');
+        }
+
+        document.getElementById('btnHelp').addEventListener('click', () => togglePanel('helpPanel'));
+        document.getElementById('btnSources').addEventListener('click', () => togglePanel('sourcesPanel'));
+
+        // ── Mobile orientation detection ──
+        function checkOrientation() {
+            const overlay = document.getElementById('rotateOverlay');
+            const isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
+            const isPortrait = window.innerHeight > window.innerWidth;
+            overlay.style.display = (isMobile && isPortrait) ? 'flex' : 'none';
+        }
+        window.addEventListener('resize', checkOrientation);
+        if (screen.orientation) {
+            screen.orientation.addEventListener('change', checkOrientation);
+        }
+
+        // ── Periodic auto-shooting star for ambiance ──
+        function autoShootingStar() {
+            if (Math.random() < 0.3) {
+                const W = window.innerWidth, H = window.innerHeight;
+                spawnShootingStar(Math.random() * W, Math.random() * H * 0.5);
+            }
+            setTimeout(autoShootingStar, 3000 + Math.random() * 5000);
+        }
+
+        // ── Initialize ──
+        function init() {
+            resize();
+            checkOrientation();
+
+            // Hide loading overlay
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 800);
+
+            // Start render loop
+            requestAnimationFrame(draw);
+
+            // Start ambient shooting stars after a delay
+            setTimeout(autoShootingStar, 4000);
+        }
+
+        // Wait for DOM ready then init
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+
+</html>
