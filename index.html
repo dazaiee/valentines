@@ -102,56 +102,95 @@
             letter-spacing: 0.04em;
         }
 
-        /* ── Controls panel ── */
-        #controls {
+        /* ── Settings button (bottom-left) ── */
+        #settingsBtn {
             position: fixed;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 20;
+            bottom: 16px;
+            left: 16px;
+            z-index: 25;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
             display: flex;
-            gap: 6px;
-            padding: 8px 14px;
             align-items: center;
-            flex-wrap: wrap;
             justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
         }
 
-        #controls button,
-        #controls label {
+        #settingsBtn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: rotate(45deg);
+        }
+
+        #settingsBtn.open {
+            transform: rotate(90deg);
+            border-color: var(--rose);
+            background: rgba(245, 183, 177, 0.12);
+        }
+
+        /* ── Settings popup menu ── */
+        #settingsMenu {
+            position: fixed;
+            bottom: 68px;
+            left: 16px;
+            z-index: 24;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 150px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(8px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom left;
+        }
+
+        #settingsMenu.visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        #settingsMenu button {
             font-family: 'Inter', sans-serif;
-            font-size: 0.72rem;
+            font-size: 0.75rem;
             font-weight: 500;
             color: var(--text);
             cursor: pointer;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 8px;
-            border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.04);
-            transition: all 0.25s ease;
-            white-space: nowrap;
-            display: inline-flex;
+            border: none;
+            background: transparent;
+            transition: all 0.2s ease;
+            text-align: left;
+            display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
+            white-space: nowrap;
         }
 
-        #controls button:hover,
-        #controls label:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.18)
+        #settingsMenu button:hover {
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        #controls button.active {
-            background: rgba(245, 183, 177, 0.15);
-            border-color: var(--rose);
-            color: var(--rose)
+        #settingsMenu button.active {
+            color: var(--rose);
         }
 
-        #controls .sep {
-            width: 1px;
-            height: 20px;
-            background: var(--border);
-            flex-shrink: 0
+        #settingsMenu button .check {
+            width: 14px;
+            text-align: center;
+            font-size: 0.6rem;
         }
 
         /* ── Info card ── */
@@ -350,57 +389,7 @@
             cursor: pointer
         }
 
-        /* ── Rotate hint (mobile portrait) — non-blocking toast ── */
-        #rotateOverlay {
-            position: fixed;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 90;
-            background: rgba(15, 20, 50, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 18px;
-            transition: opacity 0.5s ease;
-            white-space: nowrap;
-        }
 
-        #rotateOverlay .rotate-icon {
-            font-size: 1.4rem;
-            animation: rotatePhone 2s ease-in-out infinite
-        }
-
-        #rotateOverlay p {
-            font-family: 'Inter', sans-serif;
-            font-size: 0.72rem;
-            color: var(--rose);
-            margin: 0;
-        }
-
-        #rotateOverlay .dismiss {
-            font-size: 0.65rem;
-            color: var(--text-dim);
-            cursor: pointer;
-            text-decoration: underline;
-            margin-left: 6px;
-        }
-
-        @keyframes rotatePhone {
-
-            0%,
-            100% {
-                transform: rotate(0deg)
-            }
-
-            50% {
-                transform: rotate(90deg)
-            }
-        }
 
         /* ── Scrollbar ── */
         ::-webkit-scrollbar {
@@ -456,7 +445,7 @@
             }
         }
 
-        /* ── Responsive — small screens (portrait phones) ── */
+        /* ── Responsive — small screens ── */
         @media (max-width: 600px) {
             #titleOverlay {
                 top: 8px;
@@ -471,33 +460,18 @@
                 font-size: 0.6rem;
             }
 
-            /* Vertical control strip on right edge */
-            #controls {
-                bottom: auto;
-                top: 50%;
-                left: auto;
-                right: 6px;
-                transform: translateY(-50%);
-                flex-direction: column;
-                gap: 4px;
-                padding: 8px 5px;
-                max-width: 44px;
-                border-radius: 10px;
+            #settingsBtn {
+                bottom: 10px;
+                left: 10px;
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
             }
 
-            #controls button,
-            #controls label {
-                font-size: 0;
-                padding: 6px;
-                width: 32px;
-                height: 32px;
-                justify-content: center;
-                border-radius: 6px;
-            }
-
-            /* Show only emoji, hide text */
-            #controls .sep {
-                display: none;
+            #settingsMenu {
+                bottom: 54px;
+                left: 10px;
+                min-width: 130px;
             }
 
             #starCard {
@@ -528,30 +502,6 @@
                 font-size: 0.5rem;
             }
 
-            #controls {
-                bottom: 6px;
-                left: 50%;
-                transform: translateX(-50%);
-                top: auto;
-                right: auto;
-                flex-direction: row;
-                gap: 3px;
-                padding: 4px 8px;
-                max-width: none;
-            }
-
-            #controls button,
-            #controls label {
-                font-size: 0.5rem;
-                padding: 3px 5px;
-                width: auto;
-                height: auto;
-            }
-
-            #controls .sep {
-                display: block;
-            }
-
             #starCard {
                 width: min(240px, 35vw);
                 padding: 10px;
@@ -574,12 +524,7 @@
         <p>Mapping the stars…</p>
     </div>
 
-    <!-- Rotate hint toast (mobile portrait) -->
-    <div id="rotateOverlay">
-        <span class="rotate-icon">📱</span>
-        <p>Rotate for best view ✨</p>
-        <span class="dismiss" onclick="document.getElementById('rotateOverlay').style.display='none'">dismiss</span>
-    </div>
+
 
     <!-- Sky canvas -->
     <canvas id="skyCanvas"></canvas>
@@ -589,13 +534,15 @@
         <p>A star constellation for my pretty baby</p>
     </div>
 
-    <!-- Controls -->
-    <div id="controls" class="glass">
-        <button id="btnLines" class="active" title="Toggle constellation lines">✦ Lines</button>
-        <button id="btnLabels" class="active" title="Toggle star labels">🏷 Labels</button>
-        <div class="sep"></div>
-        <button id="btnHelp" title="How to use">❓ Help</button>
-        <button id="btnSources" title="Data sources">📚 Sources</button>
+    <!-- Settings button -->
+    <button id="settingsBtn" title="Settings">⚙️</button>
+
+    <!-- Settings popup menu -->
+    <div id="settingsMenu" class="glass">
+        <button id="btnLines" class="active"><span class="check">✓</span> Lines</button>
+        <button id="btnLabels" class="active"><span class="check">✓</span> Labels</button>
+        <button id="btnHelp">❓ Help</button>
+        <button id="btnSources">📚 Sources</button>
     </div>
 
     <!-- Star info card -->
@@ -865,10 +812,10 @@
             const rangeY = maxY - minY || 1;
 
             const isMobilePortrait = W < 600 && H > W;
-            const marginTop = isMobilePortrait ? 0.15 : 0.12;
-            const marginBottom = isMobilePortrait ? 0.08 : 0.12;
-            const marginLeft = isMobilePortrait ? 0.06 : 0.12;
-            const marginRight = isMobilePortrait ? 0.14 : 0.12;
+            const marginTop = isMobilePortrait ? 0.14 : 0.12;
+            const marginBottom = isMobilePortrait ? 0.06 : 0.10;
+            const marginLeft = isMobilePortrait ? 0.06 : 0.10;
+            const marginRight = isMobilePortrait ? 0.06 : 0.10;
 
             const usableW = W * (1 - marginLeft - marginRight);
             const usableH = H * (1 - marginTop - marginBottom);
@@ -1225,51 +1172,49 @@
             }
         }, { passive: false });
 
-        // ── Control buttons ──
+        // ── Settings button toggle ──
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsMenu = document.getElementById('settingsMenu');
 
+        settingsBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = settingsMenu.classList.toggle('visible');
+            settingsBtn.classList.toggle('open', isOpen);
+        });
+
+        // Close menu when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            if (!settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+                settingsMenu.classList.remove('visible');
+                settingsBtn.classList.remove('open');
+            }
+        });
+
+        // ── Menu button listeners ──
         document.getElementById('btnLines').addEventListener('click', function () {
             showLines = !showLines;
             this.classList.toggle('active');
+            this.querySelector('.check').textContent = showLines ? '✓' : '';
         });
 
         document.getElementById('btnLabels').addEventListener('click', function () {
             showLabels = !showLabels;
             this.classList.toggle('active');
+            this.querySelector('.check').textContent = showLabels ? '✓' : '';
         });
 
         function togglePanel(id) {
             const panel = document.getElementById(id);
             panel.classList.toggle('visible');
-            // Close the other panel
             const otherId = id === 'helpPanel' ? 'sourcesPanel' : 'helpPanel';
             document.getElementById(otherId).classList.remove('visible');
+            // Close settings menu
+            settingsMenu.classList.remove('visible');
+            settingsBtn.classList.remove('open');
         }
 
         document.getElementById('btnHelp').addEventListener('click', () => togglePanel('helpPanel'));
         document.getElementById('btnSources').addEventListener('click', () => togglePanel('sourcesPanel'));
-
-        // ── Mobile orientation toast (non-blocking) ──
-        let rotateDismissed = false;
-        function checkOrientation() {
-            if (rotateDismissed) return;
-            const overlay = document.getElementById('rotateOverlay');
-            const isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
-            const isPortrait = window.innerHeight > window.innerWidth;
-            if (isMobile && isPortrait) {
-                overlay.style.display = 'flex';
-                // Auto-dismiss after 4 seconds
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => { overlay.style.display = 'none'; rotateDismissed = true; }, 500);
-                }, 4000);
-            } else {
-                overlay.style.display = 'none';
-            }
-        }
-        window.addEventListener('resize', checkOrientation);
-        if (screen.orientation) {
-            screen.orientation.addEventListener('change', checkOrientation);
-        }
 
         // ── Periodic auto-shooting star for ambiance ──
         function autoShootingStar() {
@@ -1283,7 +1228,6 @@
         // ── Initialize ──
         function init() {
             resize();
-            checkOrientation();
 
             // Hide loading overlay
             setTimeout(() => {
