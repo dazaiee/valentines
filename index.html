@@ -66,16 +66,17 @@
             border-radius: var(--radius);
         }
 
-        /* ── Title overlay — bottom-left to avoid star overlap ── */
+        /* ── Title overlay ── */
         #titleOverlay {
             position: fixed;
-            bottom: 70px;
-            left: 20px;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 20;
-            text-align: left;
+            text-align: center;
             pointer-events: none;
-            padding: env(safe-area-inset-bottom, 0) 0 0 env(safe-area-inset-left, 0);
-            max-width: 60vw;
+            width: 90vw;
+            max-width: 500px;
         }
 
         #titleOverlay h1 {
@@ -105,17 +106,15 @@
         #controls {
             position: fixed;
             bottom: 12px;
-            right: 12px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 20;
             display: flex;
             gap: 6px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             align-items: center;
             flex-wrap: wrap;
-            justify-content: flex-end;
-            max-width: 280px;
-            padding-bottom: max(8px, env(safe-area-inset-bottom, 0));
-            padding-right: max(12px, env(safe-area-inset-right, 0));
+            justify-content: center;
         }
 
         #controls button,
@@ -457,26 +456,48 @@
             }
         }
 
-        /* ── Responsive — small screens ── */
+        /* ── Responsive — small screens (portrait phones) ── */
         @media (max-width: 600px) {
+            #titleOverlay {
+                top: 8px;
+                width: 94vw;
+            }
+
+            #titleOverlay h1 {
+                font-size: clamp(1rem, 5vw, 1.6rem);
+            }
+
+            #titleOverlay p {
+                font-size: 0.6rem;
+            }
+
+            /* Vertical control strip on right edge */
             #controls {
-                bottom: 6px;
+                bottom: auto;
+                top: 50%;
+                left: auto;
                 right: 6px;
+                transform: translateY(-50%);
+                flex-direction: column;
                 gap: 4px;
-                padding: 6px 8px;
-                max-width: 220px;
+                padding: 8px 5px;
+                max-width: 44px;
+                border-radius: 10px;
             }
 
             #controls button,
             #controls label {
-                font-size: 0.6rem;
-                padding: 4px 7px;
+                font-size: 0;
+                padding: 6px;
+                width: 32px;
+                height: 32px;
+                justify-content: center;
+                border-radius: 6px;
             }
 
-            #titleOverlay {
-                bottom: 50px;
-                left: 10px;
-                max-width: 55vw;
+            /* Show only emoji, hide text */
+            #controls .sep {
+                display: none;
             }
 
             #starCard {
@@ -494,43 +515,52 @@
         /* ── Landscape phones ── */
         @media (max-height: 500px) and (orientation: landscape) {
             #titleOverlay {
-                bottom: auto;
-                top: 8px;
-                left: 10px;
-                max-width: 40vw;
+                top: 6px;
+                width: auto;
+                max-width: 50vw;
             }
 
             #titleOverlay h1 {
-                font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+                font-size: clamp(0.8rem, 2.2vw, 1.2rem);
             }
 
             #titleOverlay p {
-                font-size: 0.55rem;
+                font-size: 0.5rem;
             }
 
             #controls {
-                bottom: 4px;
-                right: 6px;
+                bottom: 6px;
+                left: 50%;
+                transform: translateX(-50%);
+                top: auto;
+                right: auto;
+                flex-direction: row;
                 gap: 3px;
                 padding: 4px 8px;
-                max-width: 300px;
+                max-width: none;
             }
 
             #controls button,
             #controls label {
-                font-size: 0.55rem;
-                padding: 3px 6px;
+                font-size: 0.5rem;
+                padding: 3px 5px;
+                width: auto;
+                height: auto;
+            }
+
+            #controls .sep {
+                display: block;
             }
 
             #starCard {
-                width: min(260px, 40vw);
-                padding: 12px;
+                width: min(240px, 35vw);
+                padding: 10px;
             }
 
             .side-panel {
                 top: 40px;
                 max-height: 80vh;
-                width: min(280px, 40vw);
+                width: min(260px, 38vw);
             }
         }
     </style>
@@ -821,7 +851,8 @@
                 return { ...p, star: s };
             });
 
-            // Bounding box → fit to screen with margin
+            // Bounding box → fit to screen with asymmetric margins
+            // On mobile: extra top margin for title, extra right for controls
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             raw.forEach(p => {
                 if (p.x < minX) minX = p.x;
@@ -832,17 +863,27 @@
 
             const rangeX = maxX - minX || 1;
             const rangeY = maxY - minY || 1;
-            const margin = 0.18;
-            const usableW = W * (1 - 2 * margin);
-            const usableH = H * (1 - 2 * margin);
+
+            const isMobilePortrait = W < 600 && H > W;
+            const marginTop = isMobilePortrait ? 0.15 : 0.12;
+            const marginBottom = isMobilePortrait ? 0.08 : 0.12;
+            const marginLeft = isMobilePortrait ? 0.06 : 0.12;
+            const marginRight = isMobilePortrait ? 0.14 : 0.12;
+
+            const usableW = W * (1 - marginLeft - marginRight);
+            const usableH = H * (1 - marginTop - marginBottom);
             const scale = Math.min(usableW / rangeX, usableH / rangeY);
 
             const midX = (minX + maxX) / 2;
             const midY = (minY + maxY) / 2;
 
+            // Offset center: shift constellation away from UI edges
+            const centerOffsetX = W * (marginLeft - marginRight) / 2;
+            const centerOffsetY = H * (marginTop - marginBottom) / 2;
+
             projectedStars = raw.map(p => ({
-                x: W / 2 + (p.x - midX) * scale,
-                y: H / 2 + (p.y - midY) * scale,
+                x: W / 2 + centerOffsetX + (p.x - midX) * scale,
+                y: H / 2 + centerOffsetY + (p.y - midY) * scale,
                 star: p.star
             }));
         }
