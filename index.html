@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>PANKHURI — A Constellation For You ✨</title>
     <meta name="description"
         content="A Valentine star-map constellation gift spelling PANKHURI with real IAU-approved stars.">
@@ -66,52 +66,56 @@
             border-radius: var(--radius);
         }
 
-        /* ── Title overlay ── */
+        /* ── Title overlay — bottom-left to avoid star overlap ── */
         #titleOverlay {
             position: fixed;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 70px;
+            left: 20px;
             z-index: 20;
-            text-align: center;
+            text-align: left;
             pointer-events: none;
+            padding: env(safe-area-inset-bottom, 0) 0 0 env(safe-area-inset-left, 0);
+            max-width: 60vw;
         }
 
         #titleOverlay h1 {
             font-family: 'Playfair Display', serif;
-            font-size: clamp(1.8rem, 4vw, 3.2rem);
+            font-size: clamp(1.4rem, 3.5vw, 2.8rem);
             font-weight: 600;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.08em;
             background: linear-gradient(135deg, var(--rose), var(--gold), var(--lavender));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             filter: drop-shadow(0 0 20px rgba(245, 183, 177, 0.3));
+            line-height: 1.2;
         }
 
         #titleOverlay p {
             font-family: 'Playfair Display', serif;
             font-style: italic;
-            font-size: clamp(0.75rem, 1.8vw, 1.05rem);
+            font-size: clamp(0.65rem, 1.5vw, 0.95rem);
             color: var(--rose);
             opacity: 0.7;
-            margin-top: 6px;
+            margin-top: 4px;
             letter-spacing: 0.04em;
         }
 
         /* ── Controls panel ── */
         #controls {
             position: fixed;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 12px;
+            right: 12px;
             z-index: 20;
             display: flex;
-            gap: 8px;
-            padding: 10px 16px;
+            gap: 6px;
+            padding: 8px 12px;
             align-items: center;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-end;
+            max-width: 280px;
+            padding-bottom: max(8px, env(safe-area-inset-bottom, 0));
+            padding-right: max(12px, env(safe-area-inset-right, 0));
         }
 
         #controls button,
@@ -347,38 +351,44 @@
             cursor: pointer
         }
 
-        /* ── Rotate overlay (mobile portrait) ── */
+        /* ── Rotate hint (mobile portrait) — non-blocking toast ── */
         #rotateOverlay {
             position: fixed;
-            inset: 0;
-            z-index: 100;
-            background: rgba(10, 14, 39, 0.95);
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 90;
+            background: rgba(15, 20, 50, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             display: none;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            text-align: center;
-            padding: 40px;
+            gap: 10px;
+            padding: 10px 18px;
+            transition: opacity 0.5s ease;
+            white-space: nowrap;
         }
 
         #rotateOverlay .rotate-icon {
-            font-size: 3rem;
+            font-size: 1.4rem;
             animation: rotatePhone 2s ease-in-out infinite
         }
 
         #rotateOverlay p {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
-            color: var(--rose)
+            font-family: 'Inter', sans-serif;
+            font-size: 0.72rem;
+            color: var(--rose);
+            margin: 0;
         }
 
         #rotateOverlay .dismiss {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-dim);
             cursor: pointer;
-            margin-top: 8px;
-            text-decoration: underline
+            text-decoration: underline;
+            margin-left: 6px;
         }
 
         @keyframes rotatePhone {
@@ -447,22 +457,80 @@
             }
         }
 
-        /* ── Responsive ── */
-        @media(max-width:600px) {
+        /* ── Responsive — small screens ── */
+        @media (max-width: 600px) {
             #controls {
-                bottom: 8px;
-                gap: 5px;
-                padding: 8px 10px
+                bottom: 6px;
+                right: 6px;
+                gap: 4px;
+                padding: 6px 8px;
+                max-width: 220px;
             }
 
             #controls button,
             #controls label {
-                font-size: 0.65rem;
-                padding: 5px 8px
+                font-size: 0.6rem;
+                padding: 4px 7px;
             }
 
             #titleOverlay {
-                top: 12px
+                bottom: 50px;
+                left: 10px;
+                max-width: 55vw;
+            }
+
+            #starCard {
+                width: min(280px, 85vw);
+                padding: 14px;
+            }
+
+            .side-panel {
+                width: min(280px, 85vw);
+                top: 60px;
+                padding: 14px;
+            }
+        }
+
+        /* ── Landscape phones ── */
+        @media (max-height: 500px) and (orientation: landscape) {
+            #titleOverlay {
+                bottom: auto;
+                top: 8px;
+                left: 10px;
+                max-width: 40vw;
+            }
+
+            #titleOverlay h1 {
+                font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+            }
+
+            #titleOverlay p {
+                font-size: 0.55rem;
+            }
+
+            #controls {
+                bottom: 4px;
+                right: 6px;
+                gap: 3px;
+                padding: 4px 8px;
+                max-width: 300px;
+            }
+
+            #controls button,
+            #controls label {
+                font-size: 0.55rem;
+                padding: 3px 6px;
+            }
+
+            #starCard {
+                width: min(260px, 40vw);
+                padding: 12px;
+            }
+
+            .side-panel {
+                top: 40px;
+                max-height: 80vh;
+                width: min(280px, 40vw);
             }
         }
     </style>
@@ -476,11 +544,11 @@
         <p>Mapping the stars…</p>
     </div>
 
-    <!-- Rotate prompt for mobile portrait -->
+    <!-- Rotate hint toast (mobile portrait) -->
     <div id="rotateOverlay">
-        <div class="rotate-icon">📱</div>
-        <p>Rotate your phone for the best view ✨</p>
-        <span class="dismiss" onclick="document.getElementById('rotateOverlay').style.display='none'">View anyway</span>
+        <span class="rotate-icon">📱</span>
+        <p>Rotate for best view ✨</p>
+        <span class="dismiss" onclick="document.getElementById('rotateOverlay').style.display='none'">dismiss</span>
     </div>
 
     <!-- Sky canvas -->
@@ -668,13 +736,19 @@
          */
         function generateFaintStars() {
             faintStars = [];
-            const count = Math.min(600, Math.floor(window.innerWidth * window.innerHeight / 2000));
+            // Denser star field for realistic sky
+            const count = Math.min(1200, Math.floor(window.innerWidth * window.innerHeight / 800));
             for (let i = 0; i < count; i++) {
+                // Magnitude-based sizing: most stars are dim and tiny
+                const mag = Math.random();
+                const r = mag < 0.85 ? Math.random() * 0.8 + 0.2    // 85% tiny
+                    : mag < 0.97 ? Math.random() * 1.0 + 0.6    // 12% medium
+                        : Math.random() * 1.4 + 1.0;                // 3% bright
                 faintStars.push({
                     x: Math.random() * window.innerWidth,
                     y: Math.random() * window.innerHeight,
-                    r: Math.random() * 1.2 + 0.3,
-                    alpha: Math.random() * 0.4 + 0.1,
+                    r,
+                    alpha: Math.min(0.6, r * 0.25 + Math.random() * 0.15),
                     twinkleSpeed: Math.random() * 0.003 + 0.001,
                     twinkleOffset: Math.random() * Math.PI * 2
                 });
@@ -781,34 +855,80 @@
             const W = window.innerWidth, H = window.innerHeight;
             ctx.clearRect(0, 0, W, H);
 
-            // Background gradient (night sky)
-            const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
-            bgGrad.addColorStop(0, '#0f1535');
-            bgGrad.addColorStop(0.5, '#0a0e27');
-            bgGrad.addColorStop(1, '#060818');
+            // Background gradient (realistic deep space)
+            const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#050714');
+            bgGrad.addColorStop(0.3, '#0a0e24');
+            bgGrad.addColorStop(0.55, '#0d1230');
+            bgGrad.addColorStop(0.8, '#0a0e24');
+            bgGrad.addColorStop(1, '#040610');
             ctx.fillStyle = bgGrad;
             ctx.fillRect(0, 0, W, H);
 
-            // Milky Way haze (subtle elliptical glow)
+            // Subtle nebula / gas cloud patches
+            const nebulaPatches = [
+                { x: W * 0.2, y: H * 0.3, rx: W * 0.22, ry: H * 0.15, angle: -0.3, color: [60, 30, 90] },
+                { x: W * 0.75, y: H * 0.65, rx: W * 0.18, ry: H * 0.12, angle: 0.5, color: [40, 20, 60] },
+                { x: W * 0.5, y: H * 0.15, rx: W * 0.25, ry: H * 0.08, angle: -0.1, color: [20, 30, 50] },
+                { x: W * 0.85, y: H * 0.25, rx: W * 0.12, ry: H * 0.18, angle: 0.8, color: [50, 25, 45] },
+            ];
+            nebulaPatches.forEach(n => {
+                ctx.save();
+                ctx.translate(n.x, n.y);
+                ctx.rotate(n.angle);
+                ctx.scale(1, n.ry / n.rx);
+                const ng = ctx.createRadialGradient(0, 0, 0, 0, 0, n.rx);
+                ng.addColorStop(0, `rgba(${n.color[0]}, ${n.color[1]}, ${n.color[2]}, 0.06)`);
+                ng.addColorStop(0.5, `rgba(${n.color[0]}, ${n.color[1]}, ${n.color[2]}, 0.025)`);
+                ng.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = ng;
+                ctx.beginPath();
+                ctx.arc(0, 0, n.rx, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Milky Way haze (wider, more realistic band)
             ctx.save();
-            ctx.translate(W * 0.4, H * 0.6);
-            ctx.rotate(-0.4);
-            ctx.scale(1.8, 0.5);
-            const milkyGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.35);
-            milkyGrad.addColorStop(0, 'rgba(180, 180, 220, 0.04)');
-            milkyGrad.addColorStop(0.4, 'rgba(140, 140, 200, 0.02)');
+            ctx.translate(W * 0.35, H * 0.55);
+            ctx.rotate(-0.35);
+            ctx.scale(2.2, 0.4);
+            const milkyGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, W * 0.4);
+            milkyGrad.addColorStop(0, 'rgba(160, 160, 200, 0.045)');
+            milkyGrad.addColorStop(0.3, 'rgba(130, 130, 190, 0.025)');
+            milkyGrad.addColorStop(0.7, 'rgba(100, 100, 160, 0.01)');
             milkyGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = milkyGrad;
             ctx.fillRect(-W, -H, W * 3, H * 3);
             ctx.restore();
 
-            // Faint background stars with twinkle
+            // Faint background stars with realistic colors
+            const starColors = [
+                [200, 210, 255],   // blue-white (O/B type)
+                [220, 225, 255],   // white-blue (A type)
+                [255, 255, 240],   // white (F type)
+                [255, 245, 220],   // yellow-white (G type)
+                [255, 220, 180],   // yellow-orange (K type)
+                [255, 190, 150],   // orange-red (M type)
+            ];
             faintStars.forEach(fs => {
                 const twinkle = 0.5 + 0.5 * Math.sin(frameTime * fs.twinkleSpeed + fs.twinkleOffset);
                 const a = fs.alpha * (0.5 + 0.5 * twinkle);
+                // Pick color based on position hash for consistency
+                const colorIdx = Math.floor((fs.x * 7 + fs.y * 13) % starColors.length);
+                const [cr, cg, cb] = starColors[colorIdx];
+                // Tiny glow for brighter stars
+                if (fs.r > 1.0) {
+                    const glowR = fs.r * 3;
+                    const glow = ctx.createRadialGradient(fs.x, fs.y, 0, fs.x, fs.y, glowR);
+                    glow.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${a * 0.3})`);
+                    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = glow;
+                    ctx.fillRect(fs.x - glowR, fs.y - glowR, glowR * 2, glowR * 2);
+                }
                 ctx.beginPath();
                 ctx.arc(fs.x, fs.y, fs.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(220, 220, 255, ${a})`;
+                ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${a})`;
                 ctx.fill();
             });
 
@@ -1087,12 +1207,23 @@
         document.getElementById('btnHelp').addEventListener('click', () => togglePanel('helpPanel'));
         document.getElementById('btnSources').addEventListener('click', () => togglePanel('sourcesPanel'));
 
-        // ── Mobile orientation detection ──
+        // ── Mobile orientation toast (non-blocking) ──
+        let rotateDismissed = false;
         function checkOrientation() {
+            if (rotateDismissed) return;
             const overlay = document.getElementById('rotateOverlay');
             const isMobile = window.innerWidth < 768 || ('ontouchstart' in window);
             const isPortrait = window.innerHeight > window.innerWidth;
-            overlay.style.display = (isMobile && isPortrait) ? 'flex' : 'none';
+            if (isMobile && isPortrait) {
+                overlay.style.display = 'flex';
+                // Auto-dismiss after 4 seconds
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; rotateDismissed = true; }, 500);
+                }, 4000);
+            } else {
+                overlay.style.display = 'none';
+            }
         }
         window.addEventListener('resize', checkOrientation);
         if (screen.orientation) {
